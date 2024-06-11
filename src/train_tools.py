@@ -71,6 +71,7 @@ class Trainer:
         self.model.train()
         best_valid_loss = 1e9
         for epoch in range(self.n_epochs):
+            self.model.train()
             epoch_loss = 0.
             train_attn = []
             for inputs, outputs in self.train_loader:
@@ -105,12 +106,12 @@ class Trainer:
                 if epoch_loss < best_valid_loss:
                     best_valid_loss = epoch_loss
                     # compute dirichlet parameters
-                    train_attn = torch.cat(train_attn, dim=0).cpu().detach().numpy()
-                    self.alpha = metrics.compute_dirichlet_parameters(train_attn)
+                    train_attn = torch.cat(train_attn, dim=0)
+                    self.alpha = metrics.maximum_likelihood_estimation_of_Dirichlet_distribution(train_attn)
                     self.save(epoch, "best")
                     self.train_period_class, self.train_class_probs = metrics.compute_multinomial_probabilities(train_attn, self.model.window_size, self.cutoff_time_window, self.smoothed_window)
                     if verbose:
-                        print(f"Best model saved at epoch {epoch+1} - Loss: {best_valid_loss:.4f}")
+                        print(f"=====> Best model saved at epoch {epoch+1} - Loss: {best_valid_loss:.4f}")
 
         
     def test(self, test_inputs: np.ndarray, test_outputs: np.ndarray, test_labels: np.ndarray, test_periods: Optional[np.ndarray] = None, verbose: bool = False):
@@ -120,7 +121,7 @@ class Trainer:
 
         test_attn, test_loss = [], []
         for inputs, outputs in test_loader:
-            inputs = inputs.to(self.device)
+            inputs, outputs = inputs.to(self.device), outputs.to(self.device)
             preds, attn = self.model(inputs, return_attn=True)
             test_loss.append(self.criterion(preds, outputs).mean(dim=(1,2)))
             test_attn.append(attn[:,0])
@@ -143,12 +144,13 @@ class Trainer:
                 start_period_idx += 1
             start_data_idx = - residual
 
-            end_period_idx = len(test_periods)
+            end_period_idx = len(test_periods) - 1
             residual = self.model.horizon - 1
             while residual > 0:
                 residual -= test_periods[end_period_idx]
                 end_period_idx -= 1
-            end_data_idx = len(test_outputs) - residual
+            end_period_idx += 1
+            end_data_idx = len(test_outputs) - start_data_idx - residual
 
             anomalous_statistics = torch.stack([test_loss, dirichlet_nll, estimated_periods], dim=1)[start_data_idx:end_data_idx] # [n_timesteps, 3]
             test_periods = test_periods[start_period_idx:end_period_idx] # [n_periods]

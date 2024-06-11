@@ -1,1 +1,1 @@
-from .quadnet import QuadNet
+from .quadnet import QuADNet

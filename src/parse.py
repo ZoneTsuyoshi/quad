@@ -32,19 +32,19 @@ def get_parser_for_training():
 
     # overall parameters
     parser.add_argument("-dd", "--data_dir", type=str, default="../data/qp5", help="Directory to load the data")
-    parser.add_argument("-rd", "--result_dir", type=str, default="../results", help="Directory to save the results")
+    parser.add_argument("-rd", "--result_dir", type=str, default=None, help="Directory to save the results")
     parser.add_argument("-s", "--seed", type=int, default=128, help="Random seed")
     parser.add_argument("-g", "--gpu_id", type=int, default=0, help="GPU ID")
-    parser.add_argument("-l", "--log", type=str, default="EmptyLogger", choices=["EmptyLogger", "CometLogger", "NeptuneLogger"], help="Logger type")
-    parser.add_argument("--nolog", action="store_true", help="Do not use logger")
-    parser.add_argument("-ek", "--experiment_key", type=str, default="", help="Experiment key")
+    parser.add_argument("-l", "--log", type=str, default="CometLogger", choices=["EmptyLogger", "CometLogger", "NeptuneLogger"], help="Logger type")
+    parser.add_argument("-nolog", "--no_logger", action="store_true", help="Do not use logger")
+    parser.add_argument("-ek", "--experiment_key", type=str, default=None, help="Experiment key")
     parser.add_argument("-d", "--debug", action="store_true", help="Debug mode")
     parser.add_argument("-t", "--test", action="store_true", help="Test mode")
     parser.add_argument("-v", "--verbose", action="store_true", help="Verbose mode")
 
     # data parameters
     parser.add_argument("-ws", "--window_size", type=int, default=120, help="Window size")
-    parser.add_argument("-h", "--horizon", type=int, default=10, help="Horizon")
+    parser.add_argument("-hs", "--horizon", type=int, default=10, help="Horizon")
     parser.add_argument("-dst", "--data_stride", type=int, default=1, help="Stride")
     parser.add_argument("-sc", "--scaling", type=str, default="S", choices=["S", "M", "R", "N"], help="Scaling method")
     parser.add_argument("-vr", "--valid_ratio", type=float, default=0.2, help="Validation ratio")
@@ -61,7 +61,6 @@ def get_parser_for_training():
     parser.add_argument("-sw", "--smoothed_window", type=int, default=90, help="Smoothed window")
 
     # model parameters
-    parser.add_argument("-ch", "--n_channels", type=int, default=4, help="Number of channels")
     parser.add_argument("-hn", "--rnn_hidden", type=int, default=16, help="RNN hidden size")
     parser.add_argument("-cc", "--cnn_channels", type=int, default=16, help="CNN channels")
     parser.add_argument("-ah", "--attn_hidden", type=int, default=16, help="Attention hidden size")
@@ -74,14 +73,14 @@ def get_parser_for_training():
     parser.add_argument("-pd", "--padding", type=int, default=0, help="Padding")
     parser.add_argument("-dl", "--dilation", type=int, default=1, help="Dilation")
     parser.add_argument("-bn", "--use_batchnorm", type=strtobool, default="false", help="Use batch normalization")
-    parser.add_argument("-cd", "--cnn_dropout", type=float, default=0., help="CNN dropout")
+    parser.add_argument("-cdr", "--cnn_dropout", type=float, default=0., help="CNN dropout")
     parser.add_argument("-rt", "--rnn_type", type=str, default="GRU", help="RNN type")
-    parser.add_argument("-rd", "--rnn_dropout", type=float, default=0., help="RNN dropout")
+    parser.add_argument("-rdr", "--rnn_dropout", type=float, default=0., help="RNN dropout")
     parser.add_argument("-bd", "--bidirectional", type=strtobool, default="false", help="Bidirectional RNN")
     parser.add_argument("-at", "--attn_type", type=str, default="simple", choices=["raw", "simple", "multihead"], help="Attention type")
     parser.add_argument("-nh", "--n_heads", type=int, default=1, help="Number of heads")
-    parser.add_argument("-ad", "--attn_dropout", type=float, default=0., help="Attention dropout")
-    parser.add_argument("-ls", "--use_last_stat", type=strtobool, default="false", help="Use last stat")
+    parser.add_argument("-adr", "--attn_dropout", type=float, default=0., help="Attention dropout")
+    parser.add_argument("-uls", "--use_last_stat", type=strtobool, default="false", help="Use last stat")
 
     return parser
 
@@ -121,19 +120,13 @@ def initialize(args: argparse.Namespace) -> argparse.Namespace:
         args = argparse.Namespace(**config)
         args.test = True
     else:
-        if args.one_more_trying:
-            config = vars(args)
-            with open(os.path.join(args.result_dir, "config.json"), "r") as f:
-                config.update(json.load(f))
-            args = argparse.Namespace(**config)
-        else:
-            args = convert_None_arguments_to_Nones(args)
-            args.result_dir = set_result_direcotry(args.debug, args.result_dir)
-            if args.debug:
-                args.n_epochs = 1
-            if args.no_logger:
-                args.logger = "EmptyLogger"
-            save_config(args)
+        args = convert_None_arguments_to_Nones(args)
+        args.result_dir = set_result_direcotry(args.debug, args.result_dir)
+        if args.debug:
+            args.n_epochs = 1
+        if args.no_logger:
+            args.logger = "EmptyLogger"
+        save_config(args)
         logger.log_parameters(vars(args))
     return args, logger
 

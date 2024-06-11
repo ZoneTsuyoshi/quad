@@ -18,7 +18,7 @@ def generate_quasi_periodic_five(dim: int, n_periods: int, base_period: int, per
     for _ in range(n_periods-1):
         anomaly_on = np.random.rand(1) < ano_prob
         anomaly_flags.append(float(anomaly_on))
-        period = base_period + np.clip(np.random.normal(0, period_fluctuation), -cutoff_period_difference, cutoff_period_difference)
+        period = base_period + np.clip(round(np.random.normal(0, period_fluctuation)), -cutoff_period_difference, cutoff_period_difference)
         if anomaly_on:
             period += bias_sign * anomaly_period_bias
             ano_prob = anomaly_continuous_probability

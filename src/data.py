@@ -3,16 +3,20 @@ from typing import List
 import numpy as np
 from sklearn import preprocessing
 
-def load_data(data_dir: str, window_size: int, horizon: int, stride: int, scaling: str = "S", valid_ratio: float = 0.2):
+def load_data(data_dir: str, window_size: int, horizon: int, stride: int, scaling: str = "S", valid_ratio: float = 0.2, debug: bool = False):
     train_data = np.load(os.path.join(data_dir, "train_data.npy")) # [n_timesteps, dim]
-    test_data = np.load(os.path.join(data_dir, "valid_data.npy")) # [n_timesteps, dim]
-    test_periods = np.load(os.path.join(data_dir, "valid_periods.npy")) # [n_periods]
-    test_labels = np.load(os.path.join(data_dir, "valid_labels.npy")) # [n_periods]
+    test_data = np.load(os.path.join(data_dir, "test_data.npy")) # [n_timesteps, dim]
+    test_periods = np.load(os.path.join(data_dir, "test_periods.npy")) # [n_periods]
+    test_labels = np.load(os.path.join(data_dir, "test_labels.npy")) # [n_periods]
+    if debug:
+        test_periods = test_periods[:5]
+        test_labels = test_labels[:5]
+        test_data = test_data[:len(test_periods)]
     
     # devide data into subsequences
     n_valid_data = int(len(train_data) * valid_ratio)
     train_data, valid_data = train_data[:-n_valid_data], train_data[-n_valid_data:]
-    train_data, valid_data, test_data = map(lambda data: transform_data(data, scaling), [train_data, valid_data, test_data])
+    train_data, valid_data, test_data = transform_data([train_data, valid_data, test_data], scaling)
     train_data, valid_data, test_data = map(lambda data: devide_data_into_subsequences(data, window_size + horizon, stride), [train_data, valid_data, test_data])
 
     # divide data into inputs and outputs

@@ -2,7 +2,6 @@ from abc import ABCMeta, abstractmethod
 import os, importlib.util
 from typing import Union, Optional, List
 import numpy as np
-import matplotlib as mpl
 if importlib.util.find_spec("comet_ml") is not None:
     import comet_ml
 if importlib.util.find_spec("neptune") is not None:
@@ -53,7 +52,7 @@ class EmptyLogger(BaseLogger):
     def log_metric(self, name: str, value: Union[str, int, float], epoch: Optional[int] = None):
         pass
     
-    def log_figure(self, name: str, fig: mpl.figure.Figure, overwrite: bool = False):
+    def log_figure(self, name: str, fig, overwrite: bool = False):
         pass
 
     def log_table(self, filename: str, tabular_data = None, headers: Union[bool, list] = False):
@@ -90,7 +89,7 @@ class CometLogger(BaseLogger):
         self.experiment.log_metric(name, value, step=epoch)
         
             
-    def log_figure(self, name: str, fig: mpl.figure.Figure, overwrite: bool = True):
+    def log_figure(self, name: str, fig, overwrite: bool = True):
         self.experiment.log_figure(name, fig, overwrite=overwrite)
 
 
@@ -143,7 +142,7 @@ class NeptuneLogger(BaseLogger):
             self.run["metrics/" + name] = value
         
             
-    def log_figure(self, name: str, fig: mpl.figure.Figure, overwrite: bool = True):
+    def log_figure(self, name: str, fig, overwrite: bool = True):
         self.run["fig/" + name].upload(fig)
 
 

@@ -1,5 +1,6 @@
 import torch
 
+@torch.no_grad()
 def compute_highest_attention_time_excluding_cutoff_time_window(x: torch.Tensor, original_window_size: int, cutoff_time_window: int):
     current_window_size = x.shape[1]
     window_difference = original_window_size - current_window_size
@@ -8,7 +9,7 @@ def compute_highest_attention_time_excluding_cutoff_time_window(x: torch.Tensor,
     highest_reversed_time = highest_reversed_time + half_window_difference + cutoff_time_window + 1
     return highest_reversed_time
 
-
+@torch.no_grad()
 def median_smoothing(x: torch.Tensor, smoothed_window: int = 100):
     smoothed_x = torch.zeros_like(x)
     for i in range(len(x)):
@@ -17,7 +18,7 @@ def median_smoothing(x: torch.Tensor, smoothed_window: int = 100):
         smoothed_x[i] = x[start:end].median()
     return smoothed_x
 
-
+@torch.no_grad()
 def compute_multinomial_probabilities(x: torch.Tensor, original_window_size: int, cutoff_time_window: int, smoothed_window: int):
     estimated_periods = compute_highest_attention_time_excluding_cutoff_time_window(x, original_window_size, cutoff_time_window) # [n_timesteps]
     estimated_periods = median_smoothing(estimated_periods, smoothed_window) # [n_timesteps]
@@ -26,7 +27,7 @@ def compute_multinomial_probabilities(x: torch.Tensor, original_window_size: int
     periods, counts = torch.unique(estimated_periods, return_counts=True)
     return periods, counts / counts.sum()
 
-
+@torch.no_grad()
 def compute_negative_log_likelihood_multinomial(x: torch.Tensor, periods: torch.Tensor, class_probs: torch.Tensor):
     """
     Args:
@@ -39,7 +40,7 @@ def compute_negative_log_likelihood_multinomial(x: torch.Tensor, periods: torch.
         negative_log_likelihood[x==p] = -torch.log(class_probs[i])
     return negative_log_likelihood
 
-
+@torch.no_grad()
 def aggregate_statistics_for_each_periods(x: torch.Tensor, periods: torch.Tensor):
     n_periods = len(periods)
     aggregated_statistics = []

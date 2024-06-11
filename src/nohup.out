@@ -1,0 +1,189 @@
+/home/ev50049/anaconda3/envs/torch20/lib/python3.11/site-packages/torch/autograd/__init__.py:200: UserWarning: Error detected in CudnnRnnBackward0. Traceback of forward call that caused the error:
+  File "/home/ev50049/quad/src/run.py", line 43, in <module>
+    main(args, logger)
+  File "/home/ev50049/quad/src/run.py", line 33, in main
+    trainer.train(args.verbose)
+  File "/home/ev50049/quad/src/train_tools.py", line 79, in train
+    preds, attn = self.model(inputs, return_attn=True)
+  File "/home/ev50049/anaconda3/envs/torch20/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/ev50049/quad/src/models/quadnet.py", line 86, in forward
+    x, _ = self.rnn(x, h0) # [batch_size, seq_len, rnn_output_channels]
+  File "/home/ev50049/anaconda3/envs/torch20/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/ev50049/anaconda3/envs/torch20/lib/python3.11/site-packages/torch/nn/modules/rnn.py", line 998, in forward
+    result = _VF.gru(input, hx, self._flat_weights, self.bias, self.num_layers,
+ (Triggered internally at ../torch/csrc/autograd/python_anomaly_mode.cpp:114.)
+  Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+QuADNet(
+  (cnn): Sequential(
+    (0): Conv1d(4, 16, kernel_size=(3,), stride=(1,))
+    (1): SiLU()
+  )
+  (rnn): GRU(16, 16, batch_first=True)
+  (rnn_act): SiLU()
+  (attn): SimpleAttention(
+    (to_qkv): Linear(in_features=16, out_features=48, bias=True)
+    (dropout): Dropout(p=0.0, inplace=False)
+  )
+  (stat): LastIdentity()
+  (output): Linear(in_features=16, out_features=40, bias=True)
+)
+Traceback (most recent call last):
+  File "/home/ev50049/quad/src/run.py", line 43, in <module>
+    main(args, logger)
+  File "/home/ev50049/quad/src/run.py", line 33, in main
+    trainer.train(args.verbose)
+  File "/home/ev50049/quad/src/train_tools.py", line 81, in train
+    loss.backward()
+  File "/home/ev50049/anaconda3/envs/torch20/lib/python3.11/site-packages/torch/_tensor.py", line 487, in backward
+    torch.autograd.backward(
+  File "/home/ev50049/anaconda3/envs/torch20/lib/python3.11/site-packages/torch/autograd/__init__.py", line 200, in backward
+    Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+RuntimeError: cudnn RNN backward can only be called in training mode
+Traceback (most recent call last):
+  File "/home/ev50049/quad/src/run.py", line 42, in <module>
+    args, logger = parse.initialize(args)
+                   ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ev50049/quad/src/parse.py", line 115, in initialize
+    logger = getattr(logtools, args.log)(experiment_name, args.experiment_key)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ev50049/quad/src/logtools.py", line 81, in __init__
+    self.experiment = comet_ml.ExistingExperiment(previous_experiment=experiment_key, parse_args=False, log_env_details=True, log_env_gpu=True, log_env_cpu=True, **kwargs)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ev50049/anaconda3/envs/torch20/lib/python3.11/site-packages/comet_ml/_online.py", line 1257, in __init__
+    raise ValueError(
+ValueError: Invalid experiment key: 
+COMET WARNING: To get all data logged automatically, import comet_ml before the following modules: torch, sklearn.
+COMET INFO: Experiment is live on comet.com https://www.comet.com/zonetsuyoshi/qp5/514667c7a3954af0aa918b3b0ac2fc72
+
+QuADNet(
+  (cnn): Sequential(
+    (0): Conv1d(4, 16, kernel_size=(3,), stride=(1,))
+    (1): SiLU()
+  )
+  (rnn): GRU(16, 16, batch_first=True)
+  (rnn_act): SiLU()
+  (attn): SimpleAttention(
+    (to_qkv): Linear(in_features=16, out_features=48, bias=True)
+    (dropout): Dropout(p=0.0, inplace=False)
+  )
+  (stat): LastIdentity()
+  (output): Linear(in_features=16, out_features=40, bias=True)
+)
+Epoch 1/100 - Loss: 0.8008
+=====> Validation Loss: 0.6621
+=====> Best model saved at epoch 1 - Loss: 0.6621
+/home/ev50049/anaconda3/envs/torch20/lib/python3.11/site-packages/torch/autograd/__init__.py:200: UserWarning: Error detected in CudnnRnnBackward0. Traceback of forward call that caused the error:
+  File "/home/ev50049/quad/src/run.py", line 43, in <module>
+    main(args, logger)
+  File "/home/ev50049/quad/src/run.py", line 33, in main
+    trainer.train(args.verbose)
+  File "/home/ev50049/quad/src/train_tools.py", line 79, in train
+    preds, attn = self.model(inputs, return_attn=True)
+  File "/home/ev50049/anaconda3/envs/torch20/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/ev50049/quad/src/models/quadnet.py", line 86, in forward
+    x, _ = self.rnn(x, h0) # [batch_size, seq_len, rnn_output_channels]
+  File "/home/ev50049/anaconda3/envs/torch20/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/ev50049/anaconda3/envs/torch20/lib/python3.11/site-packages/torch/nn/modules/rnn.py", line 998, in forward
+    result = _VF.gru(input, hx, self._flat_weights, self.bias, self.num_layers,
+ (Triggered internally at ../torch/csrc/autograd/python_anomaly_mode.cpp:114.)
+  Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+Traceback (most recent call last):
+  File "/home/ev50049/quad/src/run.py", line 43, in <module>
+    main(args, logger)
+  File "/home/ev50049/quad/src/run.py", line 33, in main
+    trainer.train(args.verbose)
+  File "/home/ev50049/quad/src/train_tools.py", line 81, in train
+    loss.backward()
+  File "/home/ev50049/anaconda3/envs/torch20/lib/python3.11/site-packages/torch/_tensor.py", line 487, in backward
+    torch.autograd.backward(
+  File "/home/ev50049/anaconda3/envs/torch20/lib/python3.11/site-packages/torch/autograd/__init__.py", line 200, in backward
+    Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+RuntimeError: cudnn RNN backward can only be called in training mode
+COMET INFO: ---------------------------------------------------------------------------------------
+COMET INFO: Comet.ml Experiment Summary
+COMET INFO: ---------------------------------------------------------------------------------------
+COMET INFO:   Data:
+COMET INFO:     display_summary_level : 1
+COMET INFO:     name                  : relieved_llama_9691
+COMET INFO:     url                   : https://www.comet.com/zonetsuyoshi/qp5/514667c7a3954af0aa918b3b0ac2fc72
+COMET INFO:   Metrics:
+COMET INFO:     train_loss : 0.8008300739069886
+COMET INFO:     valid_loss : 0.8562215566635132
+COMET INFO:   Parameters:
+COMET INFO:     activation_function : SiLU
+COMET INFO:     attn_dropout        : 0.0
+COMET INFO:     attn_hidden         : 16
+COMET INFO:     attn_type           : simple
+COMET INFO:     batch_size          : 32
+COMET INFO:     bidirectional       : 0
+COMET INFO:     cnn_channels        : 16
+COMET INFO:     cnn_dropout         : 0.0
+COMET INFO:     criterion           : MSELoss
+COMET INFO:     cutoff_time_window  : 12
+COMET INFO:     data_dir            : ../data/qp5
+COMET INFO:     data_stride         : 1
+COMET INFO:     debug               : False
+COMET INFO:     dilation            : 1
+COMET INFO:     experiment_key      : None
+COMET INFO:     gpu_id              : 0
+COMET INFO:     horizon             : 10
+COMET INFO:     kernel_size         : 3
+COMET INFO:     learning_rate       : 0.001
+COMET INFO:     log                 : CometLogger
+COMET INFO:     max_grad_norm       : 1.0
+COMET INFO:     n_cnn_layers        : 1
+COMET INFO:     n_epochs            : 100
+COMET INFO:     n_evaluate_every    : 1
+COMET INFO:     n_heads             : 1
+COMET INFO:     n_output_layers     : 1
+COMET INFO:     n_rnn_layers        : 1
+COMET INFO:     no_logger           : False
+COMET INFO:     optimizer           : Adam
+COMET INFO:     padding             : 0
+COMET INFO:     result_dir          : ../results/240611_2
+COMET INFO:     rnn_dropout         : 0.0
+COMET INFO:     rnn_hidden          : 16
+COMET INFO:     rnn_type            : GRU
+COMET INFO:     scaling             : S
+COMET INFO:     seed                : 128
+COMET INFO:     smoothed_window     : 90
+COMET INFO:     stride              : 1
+COMET INFO:     test                : False
+COMET INFO:     use_batchnorm       : 0
+COMET INFO:     use_last_stat       : 1
+COMET INFO:     valid_ratio         : 0.2
+COMET INFO:     verbose             : True
+COMET INFO:     window_size         : 120
+COMET INFO:   Uploads:
+COMET INFO:     conda-environment-definition : 1
+COMET INFO:     conda-info                   : 1
+COMET INFO:     conda-specification          : 1
+COMET INFO:     environment details          : 1
+COMET INFO:     filename                     : 1
+COMET INFO:     git metadata                 : 1
+COMET INFO:     git-patch (uncompressed)     : 1 (34.90 KB)
+COMET INFO:     installed packages           : 1
+COMET INFO:     source_code                  : 2 (6.90 KB)
+COMET INFO: 
+COMET WARNING: To get all data logged automatically, import comet_ml before the following modules: torch, sklearn.
+COMET WARNING: To get all data logged automatically, import comet_ml before the following modules: sklearn, torch.
+COMET INFO: Experiment is live on comet.com https://www.comet.com/zonetsuyoshi/qp5/8e67c372b3ac47359cf57d8b95d66b81
+
+QuADNet(
+  (cnn): Sequential(
+    (0): Conv1d(4, 16, kernel_size=(3,), stride=(1,))
+    (1): SiLU()
+  )
+  (rnn): GRU(16, 16, batch_first=True)
+  (rnn_act): SiLU()
+  (attn): SimpleAttention(
+    (to_qkv): Linear(in_features=16, out_features=48, bias=True)
+    (dropout): Dropout(p=0.0, inplace=False)
+  )
+  (stat): LastIdentity()
+  (output): Linear(in_features=16, out_features=40, bias=True)
+)

@@ -2,8 +2,8 @@ from typing import List, Tuple, Union
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from utils import *
-from attention import get_attention_layers
+from .utils import *
+from .attention import get_attention_layers
 
 class QuADNet(nn.Module):
     def __init__(self,
@@ -45,12 +45,12 @@ class QuADNet(nn.Module):
         self.use_rnn = n_rnn_layers > 0
         if self.use_rnn:
             rnn = getattr(nn, rnn_type)
-            self.rnn = rnn(input_size=cnn_output_channels, hidden_size=rnn_hidden, num_layers=n_rnn_layers, dropout=rnn_dropout, bidirectional=bidirectional, batch_first=True)
+            self.rnn = rnn(input_size=cnn_output_channels, hidden_size=rnn_hidden, num_layers=n_rnn_layers, dropout=rnn_dropout, bidirectional=bool(bidirectional), batch_first=True)
             rnn_output_channels = rnn_hidden * (1 + bidirectional)
         else:
             self.rnn = nn.Linear(cnn_output_channels, rnn_hidden)
             rnn_output_channels = rnn_hidden
-        self.rnn_act = getattr(nn, activation_function)
+        self.rnn_act = getattr(nn, activation_function)()
 
         # construct attention layers
         self.attn = get_attention_layers(attn_type, rnn_output_channels, attn_hidden, n_heads, attn_dropout)
@@ -82,7 +82,8 @@ class QuADNet(nn.Module):
         """
         x = self.cnn(x.transpose(1, 2)).transpose(1, 2) # [batch_size, seq_len, cnn_output_channels]
         if self.use_rnn:
-            x, _ = self.rnn(x) # [batch_size, seq_len, rnn_output_channels]
+            h0 = torch.zeros(self.rnn.num_layers*(1+self.rnn.bidirectional), x.size(0), self.rnn.hidden_size).to(x.device)
+            x, _ = self.rnn(x, h0) # [batch_size, seq_len, rnn_output_channels]
         else:
             x = self.rnn(x) # [batch_size, seq_len, rnn_output_channels]
         x = self.rnn_act(x) # [batch_size, seq_len, rnn_output_channels]

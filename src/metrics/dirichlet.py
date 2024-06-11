@@ -1,5 +1,8 @@
+import copy
+from scipy import special
 import torch
 
+@torch.no_grad()
 def maximum_likelihood_estimation_of_Dirichlet_distribution(x: torch.Tensor, iter_FPI: int = 10, eps_FPI: float = 1e-8, iter_Newton: int = 10, eps_Newton: float = 1e-8):
     """
     Args:
@@ -17,16 +20,16 @@ def maximum_likelihood_estimation_of_Dirichlet_distribution(x: torch.Tensor, ite
     ## Fixed Point Iteration
     count_FPI = 0
     while(count_FPI < iter_FPI and torch.linalg.norm(alpha_new - alpha_old) > eps_FPI):
-        alpha_old = alpha_new.copy()
+        alpha_old = copy.deepcopy(alpha_new)
         objective = torch.special.psi(alpha_old.sum()) + torch.log(x).mean(axis=0) #[dim]
         
         count_Newton = 0
         alpha_new = torch.where(objective>=-2.22, 
                                 torch.exp(objective)+0.5,
-                                -1/(objective - torch.special.psi(1))) #[dim]
+                                -1/(objective - special.psi(1))) #[dim]
         alpha_before = 1e+6
         while(count_Newton < iter_Newton and torch.linalg.norm(alpha_new - alpha_before) > eps_Newton):
-            alpha_before = alpha_new.copy()
+            alpha_before = copy.deepcopy(alpha_new)
             alpha_new = alpha_before - (torch.special.psi(alpha_before) - objective) / torch.special.polygamma(1, alpha_before)
             count_Newton += 1
         
@@ -35,6 +38,7 @@ def maximum_likelihood_estimation_of_Dirichlet_distribution(x: torch.Tensor, ite
     return alpha_new
 
 
+@torch.no_grad()
 def compute_dirichlet_log_density(x: torch.Tensor, alpha: torch.Tensor):    
     """
     Args:
@@ -45,10 +49,11 @@ def compute_dirichlet_log_density(x: torch.Tensor, alpha: torch.Tensor):
         log_density: [n_samples]
     """
     lnB = torch.special.gammaln(alpha).sum() - torch.special.gammaln(alpha.sum())
-    kernel = torch.sum((torch.special.xlogy(alpha - 1, x.T)).T, 0)
+    kernel = torch.sum((torch.special.xlogy(alpha - 1, x)), dim=1)
     return -lnB + kernel
 
 
+@torch.no_grad()
 def compute_anomalous_scores_by_dirichlet(x: torch.Tensor, y: torch.Tensor):
     """
     Args:

@@ -1,0 +1,1 @@
+# Repository for Quasi-periodic Anomaly Detection (QuAD)

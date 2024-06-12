@@ -5,7 +5,7 @@ def compute_highest_attention_time_excluding_cutoff_time_window(x: torch.Tensor,
     current_window_size = x.shape[1]
     window_difference = original_window_size - current_window_size
     half_window_difference = window_difference // 2
-    highest_reversed_time = x[:,:-cutoff_time_window].max(dim=1)[1]
+    highest_reversed_time = x.flip(dims=[1])[:,cutoff_time_window:].max(dim=1)[1]
     highest_reversed_time = highest_reversed_time + half_window_difference + cutoff_time_window + 1
     return highest_reversed_time
 

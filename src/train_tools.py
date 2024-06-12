@@ -24,7 +24,8 @@ class Trainer:
                  max_grad_norm: float = 1.0,
                  n_evaluate_every: int = 1,
                  cutoff_time_window: int = 12,
-                 smoothed_window: int = 90):
+                 smoothed_window: int = 90,
+                 use_reconstruction: bool = False):
         self.model = model
         self.device = device
         self.logger = logger
@@ -36,6 +37,7 @@ class Trainer:
         self.n_evaluate_every = n_evaluate_every
         self.cutoff_time_window = cutoff_time_window
         self.smoothed_window = smoothed_window
+        self.use_reconstruction = use_reconstruction
 
         # prepare data loader
         train_tensor = torch.utils.data.TensorDataset(torch.from_numpy(train_inputs).float(), torch.from_numpy(train_outputs).float())
@@ -64,6 +66,9 @@ class Trainer:
         data = torch.load(os.path.join(self.result_dir, f"{model_type}_model.pt"))
         self.model.load_state_dict(data["model"])
         self.optimizer.load_state_dict(data["optimizer"])
+        self.alpha = data["alpha"]
+        self.train_period_class = data["train_period_class"]
+        self.train_class_probs = data["train_class_probs"]
         return data["epoch"]
 
 
@@ -78,7 +83,11 @@ class Trainer:
                 inputs, outputs = inputs.to(self.device), outputs.to(self.device)
                 self.optimizer.zero_grad()
                 preds, attn = self.model(inputs, return_attn=True)
+                if self.use_reconstruction:
+                    preds, recon = preds
                 loss = self.criterion(preds, outputs).mean()
+                if self.use_reconstruction:
+                    loss += self.criterion(recon, inputs[:,-recon.shape[1]:]).mean()
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.max_grad_norm)
                 self.optimizer.step()
@@ -96,7 +105,11 @@ class Trainer:
                 for inputs, outputs in self.valid_loader:
                     inputs, outputs = inputs.to(self.device), outputs.to(self.device)
                     preds = self.model(inputs)
+                    if self.use_reconstruction:
+                        preds, recon = preds
                     loss = self.criterion(preds, outputs).mean()
+                    if self.use_reconstruction:
+                        loss += self.criterion(recon, inputs[:,-recon.shape[1]:]).mean()
                     epoch_loss += loss.item()
 
                 epoch_loss /= len(self.valid_loader)
@@ -108,8 +121,8 @@ class Trainer:
                     # compute dirichlet parameters
                     train_attn = torch.cat(train_attn, dim=0)
                     self.alpha = metrics.maximum_likelihood_estimation_of_Dirichlet_distribution(train_attn)
-                    self.save(epoch, "best")
                     self.train_period_class, self.train_class_probs = metrics.compute_multinomial_probabilities(train_attn, self.model.window_size, self.cutoff_time_window, self.smoothed_window)
+                    self.save(epoch, "best")
                     if verbose:
                         print(f"=====> Best model saved at epoch {epoch+1} - Loss: {best_valid_loss:.4f}")
 
@@ -123,6 +136,8 @@ class Trainer:
         for inputs, outputs in test_loader:
             inputs, outputs = inputs.to(self.device), outputs.to(self.device)
             preds, attn = self.model(inputs, return_attn=True)
+            if self.use_reconstruction:
+                preds, _ = preds
             test_loss.append(self.criterion(preds, outputs).mean(dim=(1,2)))
             test_attn.append(attn[:,0])
         test_loss = torch.cat(test_loss, dim=0)

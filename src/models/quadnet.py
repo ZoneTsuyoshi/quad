@@ -29,7 +29,8 @@ class QuADNet(nn.Module):
                  attn_type: str = 'simple',
                  n_heads: int = 1,
                  attn_dropout: Union[float, List[float], Tuple[float]] = 0.,
-                 use_last_stat: bool = False):
+                 use_last_stat: bool = False,
+                 use_reconstruction: bool = False):
         super(QuADNet, self).__init__()
 
         self.dim = n_channels
@@ -54,6 +55,10 @@ class QuADNet(nn.Module):
 
         # construct attention layers
         self.attn = get_attention_layers(attn_type, rnn_output_channels, attn_hidden, n_heads, attn_dropout)
+
+        # reconstruction layers
+        self.use_reconstruction = use_reconstruction
+        self.recon = nn.Linear(rnn_output_channels, n_channels) if use_reconstruction else None
 
         # construct stat layers
         if use_last_stat:
@@ -87,11 +92,16 @@ class QuADNet(nn.Module):
         else:
             x = self.rnn(x) # [batch_size, seq_len, rnn_output_channels]
         x = self.rnn_act(x) # [batch_size, seq_len, rnn_output_channels]
-        x, attn = self.attn(x) # [batch_size, seq_len, rnn_output_channels]
+        x, attn = self.attn(x) # [batch_size, seq_len, rnn_output_channels], [batch_size, seq_len, seq_len]
+        if self.use_reconstruction:
+            r = self.recon(x) # [batch_size, seq_len, n_channels]
         x = self.stat(x) # [batch_size, stat_output_channels]
         x = self.output(x) # [batch_size, horizon*n_channels]
         x = x.view(x.size(0), self.horizon, self.dim) # [batch_size, horizon, n_channels]
-        if return_attn:
-            return x, attn
+        if self.use_reconstruction:
+            outputs = [x, r]
         else:
-            return x
+            outputs = x
+        if return_attn:
+            return outputs, attn
+        return outputs

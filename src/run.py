@@ -24,11 +24,12 @@ def main(args: argparse.Namespace, logger):
     print(model)
 
     # prepare trainer
-    trainer = train_tools.Trainer(model, device, logger, args.result_dir, train_inputs, train_outputs, valid_inputs, valid_outputs, args.criterion, args.batch_size, args.n_epochs, args.optimizer, args.learning_rate, args.max_grad_norm, args.n_evaluate_every)
+    trainer = train_tools.Trainer(model, device, logger, args.result_dir, train_inputs, train_outputs, valid_inputs, valid_outputs, args.criterion, args.batch_size, args.n_epochs, args.optimizer, args.learning_rate, args.max_grad_norm, args.n_evaluate_every, args.cutoff_time_window, args.smoothed_window, args.use_reconstruction)
 
     # train
     if args.test:
         trainer.load()
+        print(trainer.train_period_class, trainer.train_class_probs)
     else:
         trainer.train(args.verbose)
 

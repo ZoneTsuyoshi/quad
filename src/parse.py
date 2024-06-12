@@ -64,9 +64,9 @@ def get_parser_for_training():
     parser.add_argument("-hn", "--rnn_hidden", type=int, default=16, help="RNN hidden size")
     parser.add_argument("-cc", "--cnn_channels", type=int, default=16, help="CNN channels")
     parser.add_argument("-ah", "--attn_hidden", type=int, default=16, help="Attention hidden size")
-    parser.add_argument("-nl", "--n_rnn_layers", type=int, default=1, help="Number of RNN layers")
-    parser.add_argument("-nc", "--n_cnn_layers", type=int, default=1, help="Number of CNN layers")
-    parser.add_argument("-no", "--n_output_layers", type=int, default=1, help="Number of output layers")
+    parser.add_argument("-nrnnl", "--n_rnn_layers", type=int, default=1, help="Number of RNN layers")
+    parser.add_argument("-ncnnl", "--n_cnn_layers", type=int, default=1, help="Number of CNN layers")
+    parser.add_argument("-nol", "--n_output_layers", type=int, default=1, help="Number of output layers")
     parser.add_argument("-af", "--activation_function", type=str, default="SiLU", help="Activation function")
     parser.add_argument("-ks", "--kernel_size", type=int, default=3, help="Kernel size")
     parser.add_argument("-st", "--stride", type=int, default=1, help="Stride")
@@ -81,6 +81,7 @@ def get_parser_for_training():
     parser.add_argument("-nh", "--n_heads", type=int, default=1, help="Number of heads")
     parser.add_argument("-adr", "--attn_dropout", type=float, default=0., help="Attention dropout")
     parser.add_argument("-uls", "--use_last_stat", type=strtobool, default="false", help="Use last stat")
+    parser.add_argument("-ur", "--use_reconstruction", type=strtobool, default="false", help="Use reconstruction")
 
     return parser
 
@@ -112,7 +113,6 @@ def set_result_direcotry(debug: bool = False, result_dir: Optional[str] = None, 
 def initialize(args: argparse.Namespace) -> argparse.Namespace:
     """Convert args whether test or not."""
     experiment_name = args.data_dir.split("/")[-1]
-    logger = getattr(logtools, args.log)(experiment_name, args.experiment_key)
     if args.test:
         config = vars(args)
         with open(os.path.join(args.result_dir, "config.json"), "r") as f:
@@ -124,9 +124,12 @@ def initialize(args: argparse.Namespace) -> argparse.Namespace:
         args.result_dir = set_result_direcotry(args.debug, args.result_dir)
         if args.debug:
             args.n_epochs = 1
-        if args.no_logger:
-            args.logger = "EmptyLogger"
         save_config(args)
+    if args.no_logger:
+        args.log = "EmptyLogger"
+    logger = getattr(logtools, args.log)(experiment_name, args.experiment_key)
+    args.experiment_key = logger.get_key()
+    if not args.test:
         logger.log_parameters(vars(args))
     return args, logger
 

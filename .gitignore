@@ -1,6 +1,7 @@
 # data and results directories
 data/
 results/
+nohup.out
 
 # VSCode
 *.code-workspace
